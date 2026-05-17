@@ -1,37 +1,38 @@
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useSearchParams } from 'next/navigation'
 
 export default function ScanPage() {
   const [result, setResult] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(false)
-  const scannerRef = useRef(null)
   const html5QrRef = useRef(null)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const token = searchParams.get('token')
+    if (token) {
+      handleScan(token)
+    }
+  }, [])
 
   async function handleScan(token) {
     if (loading) return
     setLoading(true)
-
-    const { data: guest } = await supabase
-      .from('guests')
-      .select('*')
-      .eq('qr_token', token)
-      .single()
-
+    const { data: guest } = await supabase.from('guests').select('*').eq('qr_token', token).single()
     if (!guest) {
       setResult({ valid: false, message: 'Invitation introuvable' })
       setLoading(false)
       return
     }
-
     if (guest.scanned_at) {
       setResult({ valid: false, message: 'Billet deja utilise le ' + new Date(guest.scanned_at).toLocaleString() })
       setLoading(false)
       return
     }
-
     await supabase.from('guests').update({ scanned_at: new Date().toISOString() }).eq('qr_token', token)
     setResult({ valid: true, message: 'Acces autorise', guest })
     setLoading(false)
@@ -66,10 +67,7 @@ export default function ScanPage() {
       {!result && (
         <>
           <div id="qr-reader" className="w-full max-w-sm mb-4"></div>
-          <button
-            onClick={() => setScanning(!scanning)}
-            className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-200 transition"
-          >
+          <button onClick={() => setScanning(!scanning)} className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-200 transition">
             {scanning ? 'Arreter' : 'Scanner'}
           </button>
         </>
