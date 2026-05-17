@@ -14,7 +14,7 @@ export default async function TicketPage({ params }) {
     )
   }
 
-  const qrDataUrl = await QRCode.toDataURL('https://galapass-chi.vercel.app/ticket/' + token, { width: 300 })
+  const qrDataUrl = await QRCode.toDataURL('https://galapass-chi.vercel.app/scan?token=' + token, { width: 300 })
 
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
