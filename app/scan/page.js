@@ -1,11 +1,10 @@
-
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSearchParams } from 'next/navigation'
 
-export default function ScanPage() {
+function ScanContent() {
   const [result, setResult] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -85,5 +84,13 @@ export default function ScanPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function ScanPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Chargement...</div>}>
+      <ScanContent />
+    </Suspense>
   )
 }
