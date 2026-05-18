@@ -4,7 +4,11 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSearchParams } from 'next/navigation'
 
+const STAFF_PASSWORD = 'gala2026'
+
 function ScanContent() {
+  const [authed, setAuthed] = useState(false)
+  const [password, setPassword] = useState('')
   const [result, setResult] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -12,11 +16,18 @@ function ScanContent() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const token = searchParams.get('token')
-    if (token) {
-      handleScan(token)
-    }
+    const stored = localStorage.getItem('staff_authed')
+    if (stored === 'true') setAuthed(true)
   }, [])
+
+  function handleLogin() {
+    if (password === STAFF_PASSWORD) {
+      localStorage.setItem('staff_authed', 'true')
+      setAuthed(true)
+    } else {
+      alert('Mot de passe incorrect')
+    }
+  }
 
   async function handleScan(token) {
     if (loading) return
@@ -60,6 +71,18 @@ function ScanContent() {
     }
   }, [scanning])
 
+  if (!authed) {
+    return (
+      <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
+        <h1 className="text-3xl font-bold mb-8">Acces Staff</h1>
+        <div className="w-full max-w-md space-y-4">
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Mot de passe" className="w-full bg-gray-900 rounded-xl p-4 text-white outline-none" />
+          <button onClick={handleLogin} className="w-full bg-white text-black py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition">Connexion</button>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
       <h1 className="text-3xl font-bold mb-8">Scanner un billet</h1>
@@ -78,7 +101,7 @@ function ScanContent() {
           {result.guest && (
             <p className="text-xl">{result.guest.prenom} {result.guest.nom}</p>
           )}
-          <button onClick={() => setResult(null)} className="mt-4 bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200 transition">
+          <button onClick={() => { setResult(null); setScanning(true) }} className="mt-4 bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200 transition">
             Scanner suivant
           </button>
         </div>
