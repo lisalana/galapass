@@ -50,16 +50,17 @@ function ScanContent() {
 
   useEffect(() => {
     if (!scanning) return
+    let scannerInstance = null
     import('html5-qrcode').then(({ Html5Qrcode }) => {
-      const scanner = new Html5Qrcode('qr-reader')
-      html5QrRef.current = scanner
-      scanner.start(
+      scannerInstance = new Html5Qrcode('qr-reader')
+      html5QrRef.current = scannerInstance
+      scannerInstance.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: 250 },
-        (decodedText) => {
-          scanner.stop()
+        async (decodedText) => {
+          await scannerInstance.stop()
           setScanning(false)
-          handleScan(decodedText)
+          await handleScan(decodedText)
         },
         () => {}
       )
