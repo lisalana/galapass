@@ -10,7 +10,11 @@ function ScanContent() {
   const [password, setPassword] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const videoRef = useRef(null)
   const canvasRef = useRef(null)
+  const intervalRef = useRef(null)
+  const streamRef = useRef(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('staff_authed')
@@ -23,6 +27,48 @@ function ScanContent() {
       setAuthed(true)
     } else {
       alert('Mot de passe incorrect')
+    }
+  }
+
+  async function startScanner() {
+    setScanning(true)
+    setResult(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      streamRef.current = stream
+      videoRef.current.srcObject = stream
+      videoRef.current.play()
+      intervalRef.current = setInterval(() => scanFrame(), 500)
+    } catch {
+      alert('Impossible d acceder a la camera')
+      setScanning(false)
+    }
+  }
+
+  function stopScanner() {
+    clearInterval(intervalRef.current)
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+    }
+    setScanning(false)
+  }
+
+  async function scanFrame() {
+    if (!videoRef.current || !canvasRef.current) return
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0)
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    const jsQR = (await import('jsqr')).default
+    const code = jsQR(imageData.data, imageData.width, imageData.height)
+    if (code) {
+      stopScanner()
+      const rawData = code.data
+      const token = rawData.includes('/ticket/') ? rawData.split('/ticket/')[1] : rawData
+      await handleScan(token)
     }
   }
 
@@ -44,32 +90,6 @@ function ScanContent() {
     setLoading(false)
   }
 
-  async function handleImage(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setLoading(true)
-    const jsQR = (await import('jsqr')).default
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(img, 0, 0)
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      const code = jsQR(imageData.data, imageData.width, imageData.height)
-      if (code) {
-        const rawData = code.data
-      const token = rawData.includes('/ticket/') ? rawData.split('/ticket/')[1] : rawData
-      handleScan(token)
-      } else {
-        setResult({ valid: false, message: 'QR code non reconnu' })
-        setLoading(false)
-      }
-    }
-    img.src = URL.createObjectURL(file)
-  }
-
   if (!authed) {
     return (
       <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
@@ -85,19 +105,29 @@ function ScanContent() {
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
       <h1 className="text-3xl font-bold mb-8">Scanner un billet</h1>
-      {!result && !loading && (
-        <label className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg cursor-pointer hover:bg-gray-200 transition">
-          Scanner
-          <input type="file" accept="image/*" capture="environment" onChange={handleImage} className="hidden" />
-        </label>
+      {!result && (
+        <>
+          <video ref={videoRef} className={`w-full max-w-sm rounded-xl mb-4 ${scanning ? 'block' : 'hidden'}`} playsInline muted />
+          <canvas ref={canvasRef} className="hidden" />
+          {!scanning && (
+            <button onClick={startScanner} className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-200 transition">
+              Scanner
+            </button>
+          )}
+          {scanning && (
+            <button onClick={stopScanner} className="bg-red-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-red-700 transition">
+              Arreter
+            </button>
+          )}
+        </>
       )}
-      {loading && <p className="text-gray-400 text-xl">Verification...</p>}
+      {loading && <p className="text-gray-400 text-xl mt-4">Verification...</p>}
       {result && (
         <div className={`p-6 rounded-xl w-full max-w-md text-center ${result.valid ? 'bg-green-900' : 'bg-red-900'}`}>
           <p className="text-2xl font-bold mb-2">{result.valid ? 'ACCES AUTORISE' : 'REFUS'}</p>
           <p className="text-gray-300 mb-2">{result.message}</p>
           {result.guest && <p className="text-xl">{result.guest.prenom} {result.guest.nom}</p>}
-          <button onClick={() => setResult(null)} className="mt-4 bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200 transition">
+          <button onClick={() => { setResult(null); startScanner() }} className="mt-4 bg-white text-black px-6 py-2 rounded-full font-bold hover:bg-gray-200 transition">
             Scanner suivant
           </button>
         </div>
