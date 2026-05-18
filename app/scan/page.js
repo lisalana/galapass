@@ -59,7 +59,9 @@ function ScanContent() {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const code = jsQR(imageData.data, imageData.width, imageData.height)
       if (code) {
-        handleScan(code.data)
+        const rawData = code.data
+      const token = rawData.includes('/ticket/') ? rawData.split('/ticket/')[1] : rawData
+      handleScan(token)
       } else {
         setResult({ valid: false, message: 'QR code non reconnu' })
         setLoading(false)
