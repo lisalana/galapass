@@ -53,11 +53,8 @@ function ScanContent() {
     setScanning(false)
   }
 
-  const scanningRef = useRef(false)
-
 async function scanFrame() {
     if (!videoRef.current || !canvasRef.current) return
-    if (scanningRef.current) return
     const video = videoRef.current
     const canvas = canvasRef.current
     canvas.width = video.videoWidth
@@ -69,15 +66,18 @@ async function scanFrame() {
     const jsQR = (await import('jsqr')).default
     const code = jsQR(imageData.data, imageData.width, imageData.height)
     if (code) {
-      scanningRef.current = true
-      stopScanner()
+      clearInterval(intervalRef.current)
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop())
+      }
+      setScanning(false)
       const rawData = code.data
       let token = rawData
       if (rawData.includes('/ticket/')) token = rawData.split('/ticket/')[1]
       if (rawData.includes('token=')) token = rawData.split('token=')[1]
       console.log('token extrait:', token)
       await handleScan(token)
-      scanningRef.current = false
+      .current = false
     }
   }
 
