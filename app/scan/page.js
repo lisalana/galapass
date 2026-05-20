@@ -84,7 +84,7 @@ async function scanFrame() {
   async function handleScan(token) {
     setLoading(true)
     console.log('handleScan appelé avec token:', token)
-    const { data: guest } = await supabase.from('guests').select('*').eq('qr_token', token).single()
+    const { data: guest, error } = await supabase.from('guests').select('*').eq('qr_token', token).single()
     console.log('guest:', guest, 'error:', error)
     if (!guest) {
       setResult({ valid: false, message: 'Invitation introuvable' })
