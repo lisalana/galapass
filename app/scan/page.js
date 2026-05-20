@@ -67,7 +67,10 @@ function ScanContent() {
     if (code) {
       stopScanner()
       const rawData = code.data
-      const token = rawData.includes('/ticket/') ? rawData.split('/ticket/')[1] : rawData
+      let token = rawData
+      if (rawData.includes('/ticket/')) token = rawData.split('/ticket/')[1]
+      if (rawData.includes('token=')) token = rawData.split('token=')[1]
+      console.log('token extrait:', token)
       console.log('token extrait:', token)
       await handleScan(token)
     }
