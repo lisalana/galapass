@@ -75,7 +75,7 @@ export default function ScanTokenPage({ params }) {
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
       <h1 className="text-3xl font-bold mb-8">Valider entree</h1>
-      <button onClick={(e) => { e.preventDefault(); handleValidate() }} disabled={loading || !ready} className="w-full max-w-md bg-white text-black py-6 rounded-xl font-bold text-2xl hover:bg-gray-200 transition">
+      <button onClick={handleValidate} disabled={loading} className="w-full max-w-md bg-white text-black py-6 rounded-xl font-bold text-2xl hover:bg-gray-200 transition">
       {loading ? 'Verification...' : 'Valider'}
       </button>
     </main>
