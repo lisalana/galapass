@@ -90,6 +90,7 @@ async function scanFrame() {
       setLoading(false)
       return
     }
+    console.log('scanned_at:', guest.scanned_at)
     if (guest.scanned_at) {
       setResult({ valid: false, message: 'Billet deja utilise le ' + new Date(guest.scanned_at).toLocaleString() })
       setLoading(false)
