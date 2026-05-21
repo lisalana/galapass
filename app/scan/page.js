@@ -77,7 +77,6 @@ async function scanFrame() {
       if (rawData.includes('token=')) token = rawData.split('token=')[1]
       console.log('token extrait:', token)
       await handleScan(token)
-      .current = false
     }
   }
 
