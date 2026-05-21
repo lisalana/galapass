@@ -13,7 +13,6 @@ export default function ScanTokenPage({ params }) {
   const [result, setResult] = useState(null)
   const [guest, setGuest] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('staff_authed')
@@ -77,7 +76,7 @@ export default function ScanTokenPage({ params }) {
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
       <h1 className="text-3xl font-bold mb-8">Valider entree</h1>
       <button onClick={(e) => { e.preventDefault(); handleValidate() }} disabled={loading || !ready} className="w-full max-w-md bg-white text-black py-6 rounded-xl font-bold text-2xl hover:bg-gray-200 transition">
-      {!ready ? 'Chargement...' : loading ? 'Verification...' : 'Valider'}
+      {loading ? 'Verification...' : 'Valider'}
       </button>
     </main>
   )
