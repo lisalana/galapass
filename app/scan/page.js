@@ -115,7 +115,7 @@ async function scanFrame() {
   return (
     <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
       <h1 className="text-3xl font-bold mb-8">Scanner un billet</h1>
-      {!result && (
+      {!result && !loading && (
         <>
           <video ref={videoRef} className={`w-full max-w-sm rounded-xl mb-4 ${scanning ? 'block' : 'hidden'}`} playsInline muted />
           <canvas ref={canvasRef} className="hidden" />
