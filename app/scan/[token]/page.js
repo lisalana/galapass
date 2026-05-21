@@ -29,6 +29,7 @@ export default function ScanTokenPage({ params }) {
   }
 
   async function handleValidate() {
+    console.log('handleValidate appelé !')
     setLoading(true)
     const { data: freshGuest } = await supabase.from('guests').select('*').eq('qr_token', token).single()
     if (!freshGuest) {
